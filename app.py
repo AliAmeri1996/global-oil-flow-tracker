@@ -158,13 +158,13 @@ consumers = {
 
 # the check points data
 chokepoints = {
-    'Strait of Hormuz': {'lat': 26.57, 'lon': 56.25, 'barrels': 21, 'description': '20% of global oil supply passes through here daily — key Middle East export route'},
-    'Suez Canal': {'lat': 30.42, 'lon': 32.34, 'barrels': 9, 'description': 'Connects Red Sea to Mediterranean — vital for Middle East to Europe flows'},
-    'Strait of Malacca': {'lat': 2.50, 'lon': 101.20, 'barrels': 16, 'description': 'Key route from Middle East to China, Japan and South Korea'},
-    'Bosphorus Strait': {'lat': 41.12, 'lon': 29.07, 'barrels': 3, 'description': 'Only exit for Russian and Caspian oil into Mediterranean'},
-    'Cape of Good Hope': {'lat': -34.35, 'lon': 18.47, 'barrels': 6, 'description': 'Alternative route avoiding Suez Canal — used when Suez is blocked or too costly'},
-    'Danish Straits': {'lat': 57.50, 'lon': 10.50, 'barrels': 3, 'description': 'Key route for Russian oil exports from Baltic Sea ports'},
-    'Panama Canal': {'lat': 9.08, 'lon': -79.68, 'barrels': 1, 'description': 'Connects Pacific and Atlantic — used for US and Latin American oil flows'},
+    'Strait of Hormuz': {'lat': 26.57, 'lon': 56.25, 'barrels': 21, 'percentage': 20, 'description': '20% of global oil supply passes through here daily — key Middle East export route'},
+    'Suez Canal': {'lat': 30.42, 'lon': 32.34, 'barrels': 9, 'percentage': 9, 'description': 'Connects Red Sea to Mediterranean — vital for Middle East to Europe flows'},
+    'Strait of Malacca': {'lat': 2.50, 'lon': 101.20, 'barrels': 16, 'percentage': 15, 'description': 'Key route from Middle East to China, Japan and South Korea'},
+    'Bosphorus Strait': {'lat': 41.12, 'lon': 29.07, 'barrels': 3, 'percentage': 3, 'description': 'Only exit for Russian and Caspian oil into Mediterranean'},
+    'Cape of Good Hope': {'lat': -34.35, 'lon': 18.47, 'barrels': 6, 'percentage': 6, 'description': 'Alternative route avoiding Suez Canal — used when Suez is blocked or too costly'},
+    'Danish Straits': {'lat': 57.50, 'lon': 10.50, 'barrels': 3, 'percentage': 3, 'description': 'Key route for Russian oil exports from Baltic Sea ports'},
+    'Panama Canal': {'lat': 9.08, 'lon': -79.68, 'barrels': 1, 'percentage': 1, 'description': 'Connects Pacific and Atlantic — used for US and Latin American oil flows'},
 }
 
 #major trade routes
@@ -195,25 +195,56 @@ view=st.sidebar.radio("Select View", ["Oil Producers","Oil Consumers", "Trade Ro
 
 fig=go.Figure()
 
-if view=="Oil Producers":
+if view == "Oil Producers":
+    total_production = sum(d['production'] for d in producers.values())
+    st.sidebar.markdown("### Production Stats")
     for country, data in producers.items():
-           fig.add_trace(go.Scattergeo(
-           lat=[data['lat']],
-           lon=[data['lon']],
-           text=f"{country}<br> Production: {data['production']}M bpd",
-           marker=dict(
-              size=data['production']*3,
-              color='red',
-              opacity=0.7
+        percentage = (data['production'] / total_production) * 100
+        st.sidebar.markdown(f"**{country}:** {data['production']}M bpd ({percentage:.1f}%)")
+        fig.add_trace(go.Scattergeo(
+            lat=[data['lat']],
+            lon=[data['lon']],
+            text=f"{country}<br>Production: {data['production']}M bpd ({percentage:.1f}%)",
+            marker=dict(size=data['production']*3, color='red', opacity=0.7),
+            name=country,
+            mode='markers'
+        ))
 
 
-        ),
-        name=country,
-        mode='markers'
+elif view == "Oil Producers":
+    total_production = sum(d['production'] for d in producers.values())
+    st.sidebar.markdown("### Production Stats")
+    for country, data in producers.items():
+        percentage = (data['production'] / total_production) * 100
+        st.sidebar.markdown(f"**{country}:** {data['production']}M bpd ({percentage:.1f}%)")
 
 
-    ))
+elif view == "Oil Consumers":
+    total_consumption = sum(d['consumption'] for d in consumers.values())
+    st.sidebar.markdown("### Consumption Stats")
+    for country, data in consumers.items():
+        percentage = (data['consumption'] / total_consumption) * 100
+        st.sidebar.markdown(f"**{country}:** {data['consumption']}M bpd ({percentage:.1f}%)")
+        fig.add_trace(go.Scattergeo(
+            lat=[data['lat']],
+            lon=[data['lon']],
+            text=f"{country}<br>Consumption: {data['consumption']}M bpd ({percentage:.1f}%)",
+            marker=dict(size=data['consumption']*3, color='blue', opacity=0.7),
+            name=country,
+            mode='markers'
+        ))
 
+
+elif view == "Chokepoints":
+    for name, data in chokepoints.items():
+        fig.add_trace(go.Scattergeo(
+            lat=[data['lat']],
+            lon=[data['lon']],
+            text=f"{name}<br>Oil flow: {data['barrels']}M bpd<br>{data['percentage']}% of global supply<br>{data['description']}",
+            marker=dict(size=15, color='orange', symbol='diamond', opacity=0.9),
+            name=name,
+            mode='markers'
+        ))
 
 
 

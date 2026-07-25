@@ -5,7 +5,7 @@ import pandas as pd
 
 
 
-st.set_page_config(page_title="Global Oil Flow Tracker", layout="wide")
+st.set_page_config(page_title="Global Oil Flow Tracker", layout="wide", initial_sidebar_state="expanded")
 st.markdown("<h1 style='text-align: center;'>Global Oil Flow Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Explore global oil production, consumption and trade flows in real time.</p>", unsafe_allow_html=True)
 
@@ -189,6 +189,11 @@ trade_routes = [
 ]
 
 
+st.sidebar.markdown("# 🗺️ Navigation")
+st.sidebar.markdown("Use the options below to explore different views of global oil flows.")
+
+
+
 st.markdown("---")
 # sidebar for view selection
 view=st.sidebar.radio("Select View", ["Oil Producers","Oil Consumers", "Trade Routes", "Chokepoints"])
@@ -236,7 +241,12 @@ elif view == "Oil Consumers":
 
 
 elif view == "Chokepoints":
+    st.sidebar.markdown("### ⚓ Chokepoints")
+    st.sidebar.markdown("---")
     for name, data in chokepoints.items():
+        st.sidebar.markdown(f"**{name}**")
+        st.sidebar.markdown(f"{data['percentage']}% of global supply — {data['barrels']}M bpd")
+
         fig.add_trace(go.Scattergeo(
             lat=[data['lat']],
             lon=[data['lon']],
@@ -246,28 +256,57 @@ elif view == "Chokepoints":
             mode='markers'
         ))
 
+elif view == "Trade Routes":
+    st.sidebar.markdown("### 🚢 Trade Route Legend")
+    st.sidebar.markdown("🔴 **Red** — High volume (2M+ bpd)")
+    st.sidebar.markdown("🟠 **Orange** — Medium volume (1-2M bpd)")
+    st.sidebar.markdown("🟡 **Yellow** — Low volume (under 1M bpd)")
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("Line thickness also represents volume — thicker = more oil")
+    for route in trade_routes:
+        from_country = producers.get(route['from']) or consumers.get(route['from'])
+        to_country = producers.get(route['to']) or consumers.get(route['to'])
+        
+        if from_country and to_country:
+            # color based on volume
+            if route['barrels'] >= 2.0:
+                color = 'red'        # high volume
+            elif route['barrels'] >= 1.0:
+                color = 'orange'     # medium volume
+            else:
+                color = 'yellow'     # low volume
+                
+            fig.add_trace(go.Scattergeo(
+                lat=[from_country['lat'], to_country['lat']],
+                lon=[from_country['lon'], to_country['lon']],
+                mode='lines',
+                line=dict(width=route['barrels'] * 2, color=color),
+                opacity=0.7,
+                name=f"{route['from']} → {route['to']}",
+                text=f"{route['from']} → {route['to']}<br>{route['barrels']}M bpd"
+            ))
 
 
 
 fig.update_layout(
     geo=dict(
-        showframe=False,
-        showcoastlines=True,
-        showland=True,
-        landcolor='lightgray',
-        showocean=True,
-        oceancolor='lightblue',
-        showlakes=True,
-        lakecolor='lightblue',
-        showrivers=True,
-        rivercolor='lightblue',
-        showcountries=True,
-        countrycolor='white',
-        countrywidth=0.5,
-        projection_type='natural earth'
-    ),
-    height=600,
-    margin=dict(l=0, r=0, t=0, b=0)
+    showframe=False,
+    showcoastlines=True,
+    showland=True,
+    landcolor='lightgray',
+    showocean=True,
+    oceancolor='lightblue',
+    showcountries=True,
+    countrycolor='white',
+    countrywidth=0.5,
+    showlakes=True,
+    lakecolor='lightblue',
+    projection_type='natural earth'
+),
+    height=700,
+    margin=dict(l=0, r=0, t=0, b=0),
+    showlegend=False  # removes the legend on the right
+
 )
 
 st.plotly_chart(fig, use_container_width=True)

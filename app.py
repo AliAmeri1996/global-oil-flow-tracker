@@ -192,3 +192,51 @@ trade_routes = [
 st.markdown("---")
 # sidebar for view selection
 view=st.sidebar.radio("Select View", ["Oil Producers","Oil Consumers", "Trade Routes", "Chokepoints"])
+
+fig=go.Figure()
+
+if view=="Oil Producers":
+    for country, data in producers.items():
+           fig.add_trace(go.Scattergeo(
+           lat=[data['lat']],
+           lon=[data['lon']],
+           text=f"{country}<br> Production: {data['production']}M bpd",
+           marker=dict(
+              size=data['production']*3,
+              color='red',
+              opacity=0.7
+
+
+        ),
+        name=country,
+        mode='markers'
+
+
+    ))
+
+
+
+
+
+fig.update_layout(
+    geo=dict(
+        showframe=False,
+        showcoastlines=True,
+        showland=True,
+        landcolor='lightgray',
+        showocean=True,
+        oceancolor='lightblue',
+        showlakes=True,
+        lakecolor='lightblue',
+        showrivers=True,
+        rivercolor='lightblue',
+        showcountries=True,
+        countrycolor='white',
+        countrywidth=0.5,
+        projection_type='natural earth'
+    ),
+    height=600,
+    margin=dict(l=0, r=0, t=0, b=0)
+)
+
+st.plotly_chart(fig, use_container_width=True)

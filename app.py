@@ -303,7 +303,7 @@ fig.update_layout(
     lakecolor='lightblue',
     projection_type='natural earth'
 ),
-    height=700,
+    height=600,
     margin=dict(l=0, r=0, t=0, b=0),
     showlegend=False  # removes the legend on the right
 
